@@ -1,0 +1,39 @@
+version: "3.7"
+services:
+  lsso-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: tvogel8570/lsso:1.0
+    container_name: lsso-app
+    expose:
+      - ${APP_PORT}
+    networks:
+      - lsso-network
+    environment:
+      - APP_PORT=${APP_PORT}
+      - GITHUB_SSO_CLIENT=${GITHUB_SSO_CLIENT}
+      - GITHUB_SSO_SECRET=${GITHUB_SSO_SECRET}
+
+  nginx:
+    build:
+      context: ./nginx/
+      dockerfile: Dockerfile
+    image: tvogel8570/nginx-lsso:1.0 
+    container_name: lsso-nginx
+    restart: always
+    networks:
+      - lsso-network
+    ports:
+      #- ${NGINX_PORT}:${NGINX_PORT}
+      - ${NGINX_SSL_PORT}:${NGINX_SSL_PORT}
+    depends_on:
+      - lsso-app
+
+networks:
+  lsso-network:
+    driver: bridge
+    name: lsso-network
+    ipam:
+      config:
+      - subnet:  172.19.0.1/24    
